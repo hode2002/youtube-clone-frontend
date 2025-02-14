@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Roboto } from 'next/font/google';
+import MainLayout from '@/components/MainLayout';
 import './globals.css';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const roboto = Roboto({ subsets: ['latin'], weight: ['400', '500', '700'], display: 'swap' });
 
@@ -21,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {children}
+                    <TooltipProvider>
+                        <MainLayout>{children}</MainLayout>
+                    </TooltipProvider>
                 </ThemeProvider>
             </body>
         </html>
