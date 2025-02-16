@@ -9,21 +9,30 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function formatViews(
-    views: number,
-    notation: 'standard' | 'compact' = 'compact',
-    compactDisplay: 'short' | 'long' = 'short',
-) {
+export function formatNumber({
+    number = 0,
+    notation = 'compact',
+    compactDisplay = 'short',
+    suffix = '',
+}: {
+    number?: number;
+    notation?: 'standard' | 'compact';
+    compactDisplay?: 'short' | 'long';
+    suffix?: string;
+}) {
     return (
         new Intl.NumberFormat('vi-VN', {
             notation,
             compactDisplay,
-        }).format(views) + ' lượt xem'
+        }).format(number) +
+        ' ' +
+        suffix
     );
 }
 
-export function formatUploadTime(date: string) {
-    return moment(date).fromNow().replace('một', '1');
+export function formatUploadTime(date: string, type: 'fromNow' | 'detail' = 'fromNow') {
+    if (type === 'fromNow') return moment(date).fromNow().replace('một', '1');
+    return moment(date).format('D [thg] M, YYYY');
 }
 
 export function getItemFromLocalStorage(key: string) {
@@ -33,4 +42,8 @@ export function getItemFromLocalStorage(key: string) {
 
 export function setItemToLocalStorage(key: string, value: string) {
     if (typeof window !== 'undefined') window.localStorage.setItem(key, value);
+}
+
+export function removeItemFromLocalStorage(key: string) {
+    if (typeof window !== 'undefined') window.localStorage.removeItem(key);
 }
