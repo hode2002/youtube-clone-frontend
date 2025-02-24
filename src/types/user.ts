@@ -1,10 +1,13 @@
+export type UserRole = 'USER' | 'CHANNEL' | 'ADMIN';
+
 export type User = {
+    _id: string;
     email: string;
-    uniqueName?: string;
-    name?: string | '';
-    avatar: string;
-    role?: 'ADMIN' | 'USER';
-    hasChannel?: boolean;
+    username: string;
+    fullName?: string | '';
+    avatarUrl: string;
+    role: UserRole;
+    hasChannel: boolean;
 };
 
 export type UserStore = {
@@ -12,4 +15,5 @@ export type UserStore = {
     removeProfile: () => void;
     setProfile: (profile: User) => void;
     updateAvatar: (avatar: string) => void;
+    updateRole: (role: UserRole) => void;
 };
