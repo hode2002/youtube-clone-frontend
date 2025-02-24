@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -18,57 +18,111 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BellOff, BellRing, ChevronDown, UserMinus } from 'lucide-react';
 import { cn, formatNumber } from '../lib/utils';
+import { useUserStore } from '@/stores';
+import { useToast } from '@/hooks/use-toast';
+import { Channel } from '@/types';
+import { SubscriptionNotifyType } from '@/types/subscription';
+import {
+    useAddSubscription,
+    useRemoveSubscription,
+    useUpdateNotifySubscription,
+} from '@/hooks/useFetchSubscriptions';
+import { checkSubscription } from '@/apiRequests';
 
 type ChannelCardType = 'detail' | 'simple';
 
 interface ChannelCardProps {
+    channel: Channel;
     className?: string;
-    avatar: string;
-    name: string;
-    subscribers: number;
     type?: ChannelCardType;
+    isOwner?: boolean;
+    showBtnOnly?: boolean;
 }
 
 export default function ChannelCard({
     className,
-    avatar,
-    name,
-    subscribers,
+    channel,
     type = 'detail',
+    isOwner = false,
+    showBtnOnly = false,
 }: ChannelCardProps) {
+    const { toast } = useToast();
+    const { profile } = useUserStore();
     const [subscribed, setSubscribed] = useState(false);
-    const [notificationType, setNotificationType] = useState<'all' | 'off'>('all');
+    const [notificationType, setNotificationType] = useState<SubscriptionNotifyType>('all');
     const [openAlert, setOpenAlert] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { avatarUrl, subscribersCount, name, _id: channelId } = channel;
+    const { mutate: addSubscription } = useAddSubscription();
+    const { mutate: removeSubscription } = useRemoveSubscription();
+    const { mutate: updateSubsNotificationType } = useUpdateNotifySubscription();
+
+    useEffect(() => {
+        (async () => {
+            const isSubscribed = await checkSubscription(channelId);
+            if (!isSubscribed) return;
+
+            setSubscribed(true);
+            setNotificationType(isSubscribed.notificationType);
+        })();
+    }, []);
+
+    const handleUpdateNotificationType = (type: SubscriptionNotifyType) => {
+        setIsLoading(true);
+        setNotificationType(type);
+        updateSubsNotificationType({ channelId, type });
+        setIsLoading(false);
+    };
 
     const handleSubscribed = () => {
+        if (!profile) {
+            toast({ description: 'Vui lòng đăng nhập để tiếp tục' });
+            return;
+        }
+        setIsLoading(true);
+        addSubscription(channelId);
         setSubscribed(true);
+        setIsLoading(false);
     };
 
     const handleUnsubscribed = () => {
+        setIsLoading(true);
+        removeSubscription(channelId);
         setSubscribed(false);
         setOpenAlert(false);
         setNotificationType('all');
+        setIsLoading(false);
     };
 
     return (
         <div
             className={cn(
-                `flex w-full items-center rounded-xl bg-background py-4 text-foreground ${subscribed ? 'max-w-sm' : 'max-w-xs'}`,
+                `flex w-full items-center rounded-xl bg-background py-4 text-foreground ${subscribed ? 'md:max-w-sm' : 'md:max-w-xs'}`,
                 className,
             )}
         >
-            <Avatar>
-                <AvatarImage src={avatar} alt={name} />
-                <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="ml-4 flex flex-grow flex-col">
-                <span className="text-lg font-semibold">{name}</span>
-                {type === 'detail' && (
-                    <span className="text-sm text-gray-500">
-                        {formatNumber({ number: subscribers, suffix: 'người đăng ký' })}
-                    </span>
-                )}
-            </div>
+            {!showBtnOnly && (
+                <>
+                    <Avatar>
+                        <AvatarImage src={avatarUrl} alt={name} />
+                        <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+
+                    <div className="ml-4 flex flex-grow flex-col">
+                        <span className="text-lg font-semibold text-white">{name}</span>
+                        {type === 'detail' && (
+                            <span className="text-sm text-[#aaa]">
+                                {formatNumber({
+                                    number: subscribersCount,
+                                    suffix: 'người đăng ký',
+                                })}
+                            </span>
+                        )}
+                    </div>
+                </>
+            )}
+
             {type === 'detail' &&
                 (subscribed ? (
                     <DropdownMenu>
@@ -76,6 +130,7 @@ export default function ChannelCard({
                             <Button
                                 variant="outline"
                                 className="flex items-center rounded-3xl text-foreground"
+                                disabled={isLoading}
                             >
                                 {notificationType === 'all' ? (
                                     <BellRing className="fill-current" size={16} />
@@ -86,10 +141,10 @@ export default function ChannelCard({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setNotificationType('all')}>
+                            <DropdownMenuItem onClick={() => handleUpdateNotificationType('all')}>
                                 <BellRing size={16} className="mr-2 fill-current" /> Tất cả
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setNotificationType('off')}>
+                            <DropdownMenuItem onClick={() => handleUpdateNotificationType('none')}>
                                 <BellOff size={16} className="mr-2" /> Không nhận thông báo
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setOpenAlert(true)}>
@@ -97,8 +152,17 @@ export default function ChannelCard({
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                ) : isOwner ? (
+                    <Button variant="default" className="my-4 rounded-3xl bg-[#3ea6ff] text-black">
+                        Chỉnh sửa video
+                    </Button>
                 ) : (
-                    <Button variant="default" className="rounded-3xl" onClick={handleSubscribed}>
+                    <Button
+                        variant="default"
+                        className="rounded-3xl"
+                        onClick={handleSubscribed}
+                        disabled={isLoading}
+                    >
                         Đăng ký
                     </Button>
                 ))}
