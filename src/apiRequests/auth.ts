@@ -1,17 +1,24 @@
 import customAxios from '@/lib/axios';
-import { useAuthStore } from '@/stores';
 
 export const logout = async () => {
     try {
-        const { clearAuth, accessToken } = useAuthStore.getState();
-        await customAxios.post('/auth/logout', {
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-        });
-        clearAuth();
-        window.location.reload();
+        await customAxios.post('/auth/logout');
+    } catch (error) {
+        console.log('Logout error:', error);
+    }
+};
+
+export const refreshToken = async (): Promise<string | null> => {
+    try {
+        const res = await customAxios.post('/auth/refresh');
+
+        const {
+            data: { newAccessToken },
+        } = res.data;
+
+        return newAccessToken;
     } catch (error) {
         console.log(error);
+        return null;
     }
 };
