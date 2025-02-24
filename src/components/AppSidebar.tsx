@@ -1,15 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import {
-    ChevronRight,
-    History,
-    HomeIcon,
-    List,
-    ListVideo,
-    PlaySquareIcon,
-    ThumbsUp,
-} from 'lucide-react';
+import { History, HomeIcon, List, ListVideo, PlaySquareIcon, ThumbsUp } from 'lucide-react';
 import {
     Sidebar,
     SidebarContent,
@@ -23,6 +15,7 @@ import {
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSubscriptionStore } from '@/stores';
 
 type SidebarItem = { id?: string; title: string; url: string; icon: React.ElementType | string };
 
@@ -35,17 +28,6 @@ const forUserItems = [
     { title: 'Video đã xem', url: '/feed/history', icon: History },
     { title: 'Danh sách phát', url: '/feed/playlists', icon: ListVideo },
     { id: 'LL', title: 'Video đã thích', url: '/playlist?list=LL', icon: ThumbsUp },
-];
-
-const userChannels = [
-    { title: 'Kênh đăng ký 1', url: '/@channel1', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 2', url: '/@channel2', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 3', url: '/@channel3', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 4', url: '/@channel4', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 5', url: '/@channel5', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 6', url: '/@channel6', icon: 'https://github.com/shadcn.png' },
-    { title: 'Kênh đăng ký 7', url: '/@channel7', icon: 'https://github.com/shadcn.png' },
-    { title: 'Tất cả kênh đăng ký', url: '/feed/channels', icon: List },
 ];
 
 const SidebarListItem = ({
@@ -96,10 +78,8 @@ const SidebarListContent = ({ items }: { items: SidebarItem[] }) => (
 );
 
 export function AppSidebar() {
-    const pathname = usePathname();
-
     return (
-        <ScrollArea className="h-screen md:px-5">
+        <ScrollArea className="h-screen">
             <Sidebar className="mt-16 hidden h-screen text-foreground md:flex">
                 <SidebarContent className="bg-background">
                     <SidebarGroup>
@@ -108,35 +88,53 @@ export function AppSidebar() {
                         <SidebarGroupContent>
                             <SidebarMenu>
                                 <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        asChild
-                                        className="py-6"
-                                        isActive={pathname.includes('/you')}
-                                    >
-                                        <Link href={'/you'} className="flex items-center">
-                                            <p className="text-[1rem] font-semibold">Bạn</p>
-                                            <ChevronRight size={24} />
-                                        </Link>
-                                    </SidebarMenuButton>
+                                    <div className="px-2 py-3 text-[1rem] font-semibold disabled:text-foreground">
+                                        Bạn
+                                    </div>
                                 </SidebarMenuItem>
                             </SidebarMenu>
                         </SidebarGroupContent>
                         <SidebarListContent items={forUserItems} />
                         <SidebarSeparator className="my-2" />
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <div className="px-2 py-3 text-[1rem] font-semibold disabled:text-foreground">
-                                        Kênh đăng ký
-                                    </div>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                        <SidebarListContent items={userChannels} />
-                        <SidebarSeparator className="my-2" />
+                        <UserSubscription />
                     </SidebarGroup>
                 </SidebarContent>
             </Sidebar>
         </ScrollArea>
     );
 }
+
+const UserSubscription = () => {
+    const { subscriptions } = useSubscriptionStore();
+
+    const data: SidebarItem[] = subscriptions.map((sub) => {
+        return {
+            title: sub.channel.name,
+            icon: sub.channel.avatarUrl,
+            url: `/${sub.channel.uniqueName}`,
+        };
+    });
+
+    return (
+        data.length > 0 && (
+            <>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <div className="px-2 py-3 text-[1rem] font-semibold disabled:text-foreground">
+                                Kênh đăng ký
+                            </div>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+                <SidebarListContent
+                    items={[
+                        ...data,
+                        { title: 'Tất cả kênh đăng ký', url: '/feed/channels', icon: List },
+                    ]}
+                />
+                <SidebarSeparator className="my-2" />
+            </>
+        )
+    );
+};

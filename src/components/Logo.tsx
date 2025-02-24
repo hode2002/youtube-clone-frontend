@@ -1,4 +1,9 @@
+'use client';
+
+import { useTheme } from 'next-themes';
+
 const Logo = () => {
+    const { resolvedTheme } = useTheme();
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -7,7 +12,7 @@ const Logo = () => {
             viewBox="0 0 93 20"
             focusable="false"
             aria-hidden="true"
-            className="text-white"
+            className={`${resolvedTheme === 'light' ? 'text-black' : 'text-white'}`}
         >
             <g>
                 <path
