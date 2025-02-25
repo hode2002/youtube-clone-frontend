@@ -20,7 +20,7 @@ export const getSubscribedVideos = async (): Promise<Video[]> => {
 };
 
 export const subscribeChannel = async (channelId: string): Promise<Subscription> => {
-    const res = await customAxios.post('${PREFIX}', { channelId });
+    const res = await customAxios.post(PREFIX, { channelId });
     return res.data.data;
 };
 
