@@ -15,5 +15,4 @@ export type UserStore = {
     removeProfile: () => void;
     setProfile: (profile: User) => void;
     updateAvatar: (avatar: string) => void;
-    updateRole: (role: UserRole) => void;
 };

@@ -10,7 +10,7 @@ export const getUserChannel = async (userId: string): Promise<Channel> => {
 };
 
 export const createChannel = async (createChannel: CreateChannel): Promise<Channel> => {
-    const res = await customAxios.post(`${PREFIX}/${createChannel}`);
+    const res = await customAxios.post(`${PREFIX}`, createChannel);
     return res.data.data;
 };
 

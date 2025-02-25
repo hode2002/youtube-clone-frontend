@@ -14,12 +14,6 @@ export const useUserStore = create(
                 });
             },
 
-            updateRole: (newRole) => {
-                set((state) => {
-                    if (state.profile) state.profile.role = newRole;
-                });
-            },
-
             updateAvatar: (avatar) => {
                 set((state) => {
                     if (state.profile) state.profile.avatarUrl = avatar;

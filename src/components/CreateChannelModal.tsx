@@ -15,7 +15,7 @@ import { useAuthStore, useChannelStore, useUserStore } from '@/stores';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useRouter } from 'next/navigation';
-import { createChannel, refreshToken } from '@/apiRequests';
+import { createChannel, getUserProfile, refreshToken, uploadImage } from '@/apiRequests';
 
 const defaultAvatar = process.env.NEXT_PUBLIC_DEFAULT_AVATAR;
 
@@ -29,12 +29,13 @@ const CreateChannelModal = ({ open, setOpen }: CreateChannelModalProps) => {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [avatar, setAvatar] = useState<string | null>(null);
+    const [file, setFile] = useState<File | null>(null);
     const [name, setName] = useState('');
     const [uniqueName, setUniqueName] = useState('@');
     const [isLoading, setIsLoading] = useState(false);
 
     const { setAccessToken } = useAuthStore();
-    const { profile, updateRole } = useUserStore();
+    const { profile, setProfile } = useUserStore();
     const { setChannel } = useChannelStore();
 
     useEffect(() => {
@@ -49,6 +50,7 @@ const CreateChannelModal = ({ open, setOpen }: CreateChannelModalProps) => {
         const file = e.target.files?.[0];
         if (file) {
             setAvatar(URL.createObjectURL(file) as string);
+            setFile(file);
         }
     };
 
@@ -62,7 +64,8 @@ const CreateChannelModal = ({ open, setOpen }: CreateChannelModalProps) => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (name: string, uniqueName: string) => {
+        console.log({ name, avatar, uniqueName });
         if (!name || !uniqueName || uniqueName.length === 1) return;
 
         if (!profile) {
@@ -74,18 +77,25 @@ const CreateChannelModal = ({ open, setOpen }: CreateChannelModalProps) => {
 
         setIsLoading(true);
 
+        let avatarUrl = avatar ?? defaultAvatar;
+        if (file) {
+            const { secure_url } = await uploadImage(file);
+            avatarUrl = secure_url;
+        }
+
         const channel = await createChannel({
             name,
             uniqueName,
-            avatarUrl: avatar ?? defaultAvatar,
+            avatarUrl,
             owner: profile._id,
         });
 
         setChannel(channel);
-        updateRole('CHANNEL');
 
         const newAccessToken = await refreshToken();
         if (newAccessToken) setAccessToken(newAccessToken);
+        const user = await getUserProfile();
+        setProfile(user);
 
         handleCloseModal();
 
@@ -143,7 +153,7 @@ type CreateFormProps = {
     name: string;
     uniqueName: string;
     handleCloseModal: () => void;
-    handleSubmit: () => void;
+    handleSubmit: (name: string, uniqueName: string) => void;
 };
 const CreateForm = ({
     isLoading,
@@ -159,6 +169,7 @@ const CreateForm = ({
                 validationSchema={validationSchema}
                 onSubmit={(values) => {
                     console.log('Form data:', values);
+                    handleSubmit(values.name, values.uniqueName);
                 }}
             >
                 {({ handleChange, values }) => (
@@ -203,7 +214,7 @@ const CreateForm = ({
                             <Button variant="outline" onClick={handleCloseModal}>
                                 Hủy
                             </Button>
-                            <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+                            <Button type="submit" disabled={isLoading}>
                                 Tạo kênh
                             </Button>
                         </DialogFooter>
