@@ -46,13 +46,16 @@ export default function VideoDescription({
             {type === 'show' && (
                 <div className="mt-2">
                     {content ? (
-                        <h2 className="text-lg font-semibold">{content}</h2>
+                        <h2 className="text-sm font-semibold">{content}</h2>
                     ) : (
                         <span className="text-sm italic text-gray-500">
                             Video này chưa được thêm nội dung mô tả.
                         </span>
                     )}
-                    <p className="text-sm text-gray-500">{category}</p>
+                    <p className="mt-4 flex gap-2 text-sm">
+                        <span>Thể loại:</span>
+                        <span className="capitalize">{category}</span>
+                    </p>
                 </div>
             )}
             <Button

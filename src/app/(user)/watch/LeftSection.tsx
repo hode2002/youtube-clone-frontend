@@ -79,6 +79,7 @@ const LeftSection = ({ className }: { className?: string }) => {
                         views={video.viewsCount}
                         uploadTime={video.publishedAt}
                         category={video.category}
+                        content={video.description}
                     />
                     <CommentSection _videoId={video._id} />
                 </div>
