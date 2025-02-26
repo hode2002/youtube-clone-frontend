@@ -11,7 +11,7 @@ interface PlaylistVideoProps {
     owner: string;
     videos: Video[];
 }
-const PlaylistVideo = ({ title, owner, videos }: PlaylistVideoProps) => {
+const PlaylistVideo = ({ title, owner, videos = [] }: PlaylistVideoProps) => {
     const router = useRouter();
     const [currIdx, setCurrIdx] = useState(1);
     const searchParams = useSearchParams();
@@ -36,35 +36,37 @@ const PlaylistVideo = ({ title, owner, videos }: PlaylistVideoProps) => {
                     <p className="flex gap-2 text-sm">
                         <span className="text-background dark:text-foreground">{owner}</span>
                         <span className="text-[#aaa]">
-                            {currIdx}/{videos.length}
+                            {currIdx}/{videos?.length}
                         </span>
                     </p>
                 </div>
             </div>
             <Separator className="h-px bg-white" />
             <ScrollArea className="h-[calc(675px-88px)]">
-                {videos.map((video: Video, index) => (
-                    <div
-                        key={video._id}
-                        onClick={() => setCurrIdx(index + 1)}
-                        className={`flex cursor-pointer items-center gap-2 p-1 px-2 ${isActive(video) && 'bg-slate-200 dark:bg-[#272727]'}`}
-                    >
-                        <p className="flex-1 text-sm">
-                            {isActive(video) ? (
-                                <Play size={10} className="fill-current" />
-                            ) : (
-                                <span>{index + 1}</span>
-                            )}
-                        </p>
-                        <VideoCard
+                {videos &&
+                    videos?.length > 0 &&
+                    videos.map((video: Video, index) => (
+                        <div
                             key={video._id}
-                            video={video}
-                            orientation="horizontal"
-                            hasAvatar={false}
-                            onRedirect={handleRedirect}
-                        />
-                    </div>
-                ))}
+                            onClick={() => setCurrIdx(index + 1)}
+                            className={`flex cursor-pointer items-center gap-2 p-1 px-2 ${isActive(video) && 'bg-slate-200 dark:bg-[#272727]'}`}
+                        >
+                            <p className="flex-1 text-sm">
+                                {isActive(video) ? (
+                                    <Play size={10} className="fill-current" />
+                                ) : (
+                                    <span>{index + 1}</span>
+                                )}
+                            </p>
+                            <VideoCard
+                                key={video._id}
+                                video={video}
+                                orientation="horizontal"
+                                hasAvatar={false}
+                                onRedirect={handleRedirect}
+                            />
+                        </div>
+                    ))}
             </ScrollArea>
         </div>
     );
