@@ -12,13 +12,14 @@ import { useSearchParams } from 'next/navigation';
 import { useSidebar } from '@/components/ui/sidebar';
 import { addToWatchHistory, getVideoById, increaseViewByVideoId } from '@/apiRequests';
 import { Video } from '@/types';
-import { useChannelStore } from '@/stores';
+import { useChannelStore, useUserStore } from '@/stores';
 import { useIsMobile } from '@/hooks/use-mobile';
 import CommentSection from '@/app/(user)/watch/CommentSection';
 
 const LeftSection = ({ className }: { className?: string }) => {
     const { setOpen } = useSidebar();
     const searchParams = useSearchParams();
+    const { profile } = useUserStore();
     const videoId = searchParams.get('v') || '';
     const [video, setVideo] = useState<Video | null>(null);
     const isMobile = useIsMobile();
@@ -32,18 +33,21 @@ const LeftSection = ({ className }: { className?: string }) => {
     useEffect(() => {
         if (!videoId) return;
 
+        setVideo(null);
+
         (async () => {
             const res = await getVideoById(videoId);
             setVideo(res ?? null);
-            await increaseViewByVideoId(videoId);
-            await addToWatchHistory(videoId);
+
+            if (profile) {
+                await Promise.all([increaseViewByVideoId(videoId), addToWatchHistory(videoId)]);
+            }
         })();
     }, [videoId]);
 
     return (
         <div className={className}>
             {videoId && video && <VideoPlayer url={video.url} />}
-
             {videoId && video && (
                 <div className="px-3 py-2">
                     <p className="text-xl font-semibold capitalize">{video.title}</p>
