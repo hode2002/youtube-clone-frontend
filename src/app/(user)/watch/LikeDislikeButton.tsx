@@ -43,9 +43,6 @@ export default function LikeDislikeButton({
             if (res) {
                 setLiked(res.type === 'like');
                 setDisliked(res.type === 'dislike');
-            } else {
-                setLiked(false);
-                setDisliked(false);
             }
         })();
     }, [targetId, targetType]);
