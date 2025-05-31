@@ -111,3 +111,29 @@ A full-featured YouTube clone application that allows users to upload, view, int
 - 💻 Desktop-optimized experience
 - 📱 Mobile-friendly interface with touch gestures
 - 🌓 Light/dark mode support
+
+
+## 🖼️ Images
+
+### 🎥 Homepage
+![Homepage](/public/images/homepage.png)
+
+### 📺 Watch Video
+![Watch Video](/public/images/watch-video-1.png)
+![Watch Video](/public/images/watch-video-2.png)
+
+### ⏱️ History
+![History](/public/images/history.png)
+
+### 📋 Playlists
+![Playlists](/public/images/playlists.png)
+
+### ❤️ Liked Videos
+![Liked Videos](/public/images/liked.png)
+
+### 👥 Channel Subscription
+![Channel Subscription Detail](/public/images/channel-subscription-detail.png)
+![Channel Subscription](/public/images/channel-subscription.png)
+
+### 🎬 Studio
+![Studio](/public/images/studio.png)
